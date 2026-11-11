@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<!-- saved from url=(0076)file:///C:/Users/darwi/.gemini/antigravity/scratch/survival-quest/index.html -->
+<html lang="es" class="translated-ltr"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>SURVIVAL QUEST - Videojuego de Aventura y Supervivencia</title>
+    <link rel="stylesheet" href="./SURVIVAL QUEST - Videojuego de Aventura y Supervivencia_files/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com/">
+    <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="">
+    <link href="./SURVIVAL QUEST - Videojuego de Aventura y Supervivencia_files/css2" rel="stylesheet">
+<link type="text/css" rel="stylesheet" charset="UTF-8" href="./SURVIVAL QUEST - Videojuego de Aventura y Supervivencia_files/m=el_main_css"></head>
+<body>
+    <div id="game-container">
+        <!-- Canvas principal de renderizado -->
+        <canvas id="game-canvas" width="1366" height="645"></canvas>
+
+        <!-- Capa de iluminación y atmósfera día/noche -->
+        <canvas id="light-canvas" width="1366" height="645"></canvas>
+
+        <!-- HUD: Indicadores de supervivencia en tiempo real -->
+        <div id="hud" class="hud-overlay">
+            <!-- Perfil y Vitals (Salud, Hambre, Sed, Energía) -->
+            <div class="vitals-panel">
+                <div class="character-card">
+                    <div class="avatar-frame">
+                        <div class="avatar-img"><font dir="auto" style="vertical-align: inherit;"><font dir="auto" style="vertical-align: inherit;">🧑‍🌾</font></font></div>
+                        <span class="avatar-level" id="day-badge"><font dir="auto" style="vertical-align: inherit;"><font dir="auto" style="vertical-align: inherit;">Día 1</font></font></span>
+                    </div>
+                    <div class="bars-container">
+                        <!-- Salud -->
+                        <div class="stat-bar-wrapper">
+                            <div class="stat-icon"><font dir="auto" style="vertical-align: inherit;"><font dir="auto" style="vertical-align: inherit;">❤️</font></font></div>
+                            <div class="stat-bar-track">
+                                <div id="bar-health" class="stat-bar-fill bar-health" style="width: 100%;"></div>
+                                <span class="stat-text" id="text-health"><font dir="auto" style="vertical-align: inherit;"><font dir="auto" style="vertical-align: inherit;">100 / 100</font></font></span>
+                            </div>
+                        </div>
+                        <!-- Hambre -->
+                        <div class="stat-bar-wrapper">
+                            <div class="stat-icon"><font dir="auto" style="vertical-align: inherit;"><font dir="auto" style="vertical-align: inherit;">🍗</font></font></div>
+                            <div class="stat-bar-track">
+                                <div id="bar-hunger" class="stat-bar-fill bar-hunger" style="width: 100%;"></div>
+                                <span class="stat-text" id="text-hunger"><font dir="auto" style="vertical-align: inherit;"><font dir="auto" style="vertical-align: inherit;">100 / 100</font></font></span>
+                            </div>
+                        </div>
+                        <!-- Sed -->
+                        <div class="stat-bar-wrapper">
+                            <div class="stat-icon"><font dir="auto" style="vertical-align: inherit;"><font dir="auto" style="vertical-align: inherit;">💧</font></font></div>
+                            <div class="stat-bar-track">
+                                <div id="bar-thirst" class="stat-bar-fill bar-thirst" style="width: 100%;"></div>
+                                <span class="stat-text" id="text-thirst"><font dir="auto" style="vertical-align: inherit;"><font dir="auto" style="vertical-align: inherit;">100 / 100</font></font></span>
+                            </div>
+                        </div>
+                        <!-- Energía -->
+                        <div class="stat-bar-wrapper">
+                            <div class="stat-icon"><font dir="auto" style="vertical-align: inherit;"><font dir="auto" style="vertical-align: inherit;">⚡</font></font></div>
+                            <div class="stat-bar-track">
+                                <div id="bar-energy" class="stat-bar-fill bar-energy" style="width: 100%;"></div>
+                                <span class="stat-text" id="text-energy"><font dir="auto" style="vertical-align: inherit;"><font dir="auto" style="vertical-align: inherit;">100 / 100</font></font></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reloj del Ciclo Día / Noche -->
+            <div class="clock-panel">
+                <div class="time-display">
+                    <span id="time-icon"><font dir="auto" style="vertical-align: inherit;"><font dir="auto" style="vertical-align: inherit;">☀️</font></font></span>
+                    <span id="time-string"><font dir="auto" style="vertical-align: inherit;"><font dir="auto" style="vertical-align: inherit;">08:00 AM</font></font></span>
+                </div>
+                <div class="day-phase" id="time-phase">Mañana Despejada</div>
+                <div class="time-bar-track">
+                    <div id="time-bar-fill" class="time-bar-fill" style="width: 25%;"></div>
+                </div>
+            </div>
+
+            <!-- Rastreador de Misiones (Survival Quests) -->
+            <div class="quest-tracker" id="quest-tracker">
+                <div class="quest-header">
+                    <span class="quest-title-icon"><font dir="auto" style="vertical-align: inherit;"><font dir="auto" style="vertical-align: inherit;">📜</font></font></span>
+                    <span class="quest-title">MISIÓN ACTIVA</span>
+                    <button class="quest-toggle-btn" id="btn-toggle-quest" title="Minimizar (Tecla Q)"><font dir="auto" style="vertical-align: inherit;"><font dir="auto" style="vertical-align: inherit;">-</font></font></button>
+                </div>
+                <div class="quest-content" id="quest-content">
+                    <div class="quest-name" id="quest-name">Primeros Pasos en la Naturaleza</div>
+                    <div class="quest-desc" id="quest-desc">Explora los alrededores y recolecta madera de árboles y piedras para tus primeras herramientas.</div>
+                    <div class="quest-progress-box">
+                        <div class="quest-progress-track">
+                            <div id="quest-progress-fill" class="quest-progress-fill" style="width: 0%;"></div>
+                        </div>
+                        <span id="quest-progress-text" class="quest-progress-text">0 / 3 Objetivos</span>
+                    </div>
+                    <div id="quest-tasks-list" class="quest-tasks-list"><div class="quest-task-item "><span><font dir="auto" style="vertical-align: inherit;"><font dir="auto" style="vertical-align: inherit;">⚪</font></font></span> <span>Recolectar Madera (x5) (0/5)</span></div><div class="quest-task-item "><span><font dir="auto" style="vertical-align: inherit;"><font dir="auto" style="vertical-align: inherit;">⚪</font></font></span> <span>Recolectar Piedra (x3) (0/3)</span></div><div class="quest-task-item "><span><font dir="auto" style="vertical-align: inherit;"><font dir="auto" style="vertical-align: inherit;">⚪</font></font></span> <span>Recolectar Bayas (x2) (0/2)</span></div></div>
+                </div>
+            </div>
+
+            <!-- Notificaciones en pantalla (Toasts) -->
+            <div id="notification-zone" class="notification-zone"></div>
+
+            <!-- Interacción contextual (Press E to...) -->
+            <div id="interaction-prompt" class="interaction-prompt hidden">
+                <span class="key-badge"><font dir="auto" style="vertical-align: inherit;"><font dir="auto" style="vertical-align: inherit;">Y</font></font></span>
+                <span id="prompt-text">Recolectar</span>
+            </div>
+
+            <!-- Barra Rápida (Hotbar) -->
+            <div class="hotbar-container">
+                <div class="hotbar-slots" id="hotbar-slots"><div class="hotbar-slot active" data-index="0"><span class="slot-key"><font dir="auto" style="vertical-align: inherit;"><font dir="auto" style="vertical-align: inherit;">1</font></font></span><span class="slot-icon"><font dir="auto" style="vertical-align: inherit;"><font dir="auto" style="vertical-align: inherit;">🪵</font></font></span><span class="slot-count"><font dir="auto" style="vertical-align: inherit;"><font dir="auto" style="vertical-align: inherit;">2</font></font></span></div><div class="hotbar-slot " data-index="1"><span class="slot-key"><font dir="auto" style="vertical-align: inherit;"><font dir="auto" style="vertical-align: inherit;">2</font></font></span><span class="slot-icon"><font dir="auto" style="vertical-align: inherit;"><font dir="auto" style="vertical-align: inherit;">🫐</font></font></span><span class="slot-count"><font dir="auto" style="vertical-align: inherit;"><font dir="auto" style="vertical-align: inherit;">4</font></font></span></div><div class="hotbar-slot " data-index="2"><span class="slot-key"><font dir="auto" style="vertical-align: inherit;"><font dir="auto" style="vertical-align: inherit;">3</font></font></span></div><div class="hotbar-slot " data-index="3"><span class="slot-key"><font dir="auto" style="vertical-align: inherit;"><font dir="auto" style="vertical-align: inherit;">4</font></font></span></div><div class="hotbar-slot " data-index="4"><span class="slot-key"><font dir="auto" style="vertical-align: inherit;"><font dir="auto" style="vertical-align: inherit;">5</font></font></span></div><div class="hotbar-slot " data-index="5"><span class="slot-key"><font dir="auto" style="vertical-align: inherit;"><font dir="auto" style="vertical-align: inherit;">6</font></font></span></div><div class="hotbar-slot " data-index="6"><span class="slot-key"><font dir="auto" style="vertical-align: inherit;"><font dir="auto" style="vertical-align: inherit;">7</font></font></span></div><div class="hotbar-slot " data-index="7"><span class="slot-key"><font dir="auto" style="vertical-align: inherit;"><font dir="auto" style="vertical-align: inherit;">8</font></font></span></div></div>
+                <div class="hotbar-help">Usa [1 - 8] para seleccionar | [Espacio] Usar herramienta</div>
+            </div>
+
+            <!-- Botones de Acción Rápida (HUD Controls) -->
+            <div class="quick-hud-actions">
+                <button class="hud-btn" id="btn-open-inventory" title="Inventario [E o I]"><font dir="auto" style="vertical-align: inherit;"><font dir="auto" style="vertical-align: inherit;">🎒</font></font><span>Inventario</span></button>
+                <button class="hud-btn" id="btn-open-crafting" title="Fabricar [C]"><font dir="auto" style="vertical-align: inherit;"><font dir="auto" style="vertical-align: inherit;">🔨</font></font><span>Fabricar</span></button>
+                <button class="hud-btn" id="btn-open-map" title="Mapa / Misiones [M]"><font dir="auto" style="vertical-align: inherit;"><font dir="auto" style="vertical-align: inherit;">🗺️</font></font><span><font dir="auto" style="vertical-align: inherit;"><font dir="auto" style="vertical-align: inherit;">Mapa</font></font></span></button>
+                <button class="hud-btn" id="btn-open-pause" title="Menú / Pausa [ESC]"><font dir="auto" style="vertical-align: inherit;"><font dir="auto" style="vertical-align: inherit;">⚙️</font></font><span>Menú</span></button>
+            </div>
+        </div>
+
+        <!-- MODAL: Inventario -->
+        <div id="modal-inventory" class="modal hidden">
+            <div class="modal-box modal-inventory-box">
+                <div class="modal-header">
+                    <h2>🎒 INVENTARIO DE SUPERVIVENCIA</h2>
+                    <button class="modal-close-btn" data-close="modal-inventory"><font dir="auto" style="vertical-align: inherit;"><font dir="auto" style="vertical-align: inherit;">✕</font></font></button>
+                </div>
+                <div class="modal-body inventory-layout">
+                    <div class="inventory-grid-container">
+                        <h3>Mochila del Explorador (24 Espacios)</h3>
+                        <div id="inventory-grid" class="inventory-grid"><div class="inv-slot" data-index="0"><span class="slot-icon"><font dir="auto" style="vertical-align: inherit;"><font dir="auto" style="vertical-align: inherit;">🪵</font></font></span><span class="slot-count"><font dir="auto" style="vertical-align: inherit;"><font dir="auto" style="vertical-align: inherit;">2</font></font></span></div><div class="inv-slot" data-index="1"><span class="slot-icon"><font dir="auto" style="vertical-align: inherit;"><font dir="auto" style="vertical-align: inherit;">🫐</font></font></span><span class="slot-count"><font dir="auto" style="vertical-align: inherit;"><font dir="auto" style="vertical-align: inherit;">4</font></font></span></div><div class="inv-slot" data-index="2"></div><div class="inv-slot" data-index="3"></div><div class="inv-slot" data-index="4"></div><div class="inv-slot" data-index="5"></div><div class="inv-slot" data-index="6"></div><div class="inv-slot" data-index="7"></div><div class="inv-slot" data-index="8"></div><div class="inv-slot" data-index="9"></div><div class="inv-slot" data-index="10"></div><div class="inv-slot" data-index="11"></div><div class="inv-slot" data-index="12"></div><div class="inv-slot" data-index="13"></div><div class="inv-slot" data-index="14"></div><div class="inv-slot" data-index="15"></div><div class="inv-slot" data-index="16"></div><div class="inv-slot" data-index="17"></div><div class="inv-slot" data-index="18"></div><div class="inv-slot" data-index="19"></div><div class="inv-slot" data-index="20"></div><div class="inv-slot" data-index="21"></div><div class="inv-slot" data-index="22"></div><div class="inv-slot" data-index="23"></div></div>
+                    </div>
+                    <div class="item-details-panel" id="item-details-panel">
+                        <div class="empty-details">Selecciona un objeto para ver sus detalles</div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <span class="footer-tip">Arrastra o haz clic en un objeto para asignarlo a la barra de acceso rápido.</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- MODAL: Fabricación (Crafting) -->
+        <div id="modal-crafting" class="modal hidden">
+            <div class="modal-box modal-crafting-box">
+                <div class="modal-header">
+                    <h2>🔨 TALLER DE FABRICACIÓN</h2>
+                    <button class="modal-close-btn" data-close="modal-crafting"><font dir="auto" style="vertical-align: inherit;"><font dir="auto" style="vertical-align: inherit;">✕</font></font></button>
+                </div>
+                <div class="modal-body crafting-layout">
+                    <!-- Categorías -->
+                    <div class="crafting-categories">
+                        <button class="cat-btn active" data-category="tools">⛏️ Herramientas</button>
+                        <button class="cat-btn" data-category="survival">🔥 Supervivencia</button>
+                        <button class="cat-btn" data-category="building">🏕️ Construcción</button>
+                        <button class="cat-btn" data-category="food">🍲 Comida y Agua</button>
+                    </div>
+                    <!-- Lista de Recetas -->
+                    <div class="recipes-list-container">
+                        <div id="recipes-list" class="recipes-list"></div>
+                    </div>
+                    <!-- Vista previa de Receta y Botón Fabricar -->
+                    <div class="recipe-detail-panel" id="recipe-detail-panel">
+                        <div class="empty-details">Elige una receta para ver los materiales requeridos</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- MODAL: Mapa del Mundo -->
+        <div id="modal-map" class="modal hidden">
+            <div class="modal-box modal-map-box">
+                <div class="modal-header">
+                    <h2>🗺️ MAPA DEL ENTORNO NATURAL</h2>
+                    <button class="modal-close-btn" data-close="modal-map"><font dir="auto" style="vertical-align: inherit;"><font dir="auto" style="vertical-align: inherit;">✕</font></font></button>
+                </div>
+                <div class="modal-body map-body">
+                    <div class="map-canvas-container">
+                        <canvas id="minimap-canvas" width="400" height="400"></canvas>
+                    </div>
+                    <div class="map-legend">
+                        <h4>Leyenda del Bosque</h4>
+                        <div class="legend-item"><span class="legend-dot dot-player"></span> Tu posición</div>
+                        <div class="legend-item"><span class="legend-dot dot-river"></span> Río de Agua Dulce</div>
+                        <div class="legend-item"><span class="legend-dot dot-forest"></span> Bosque Denso</div>
+                        <div class="legend-item"><span class="legend-dot dot-rocks"></span> Montañas Rocosas</div>
+                        <div class="legend-item"><span class="legend-dot dot-shelter"></span> Refugios y Fogatas</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- MODAL: Menú de Pausa y Ajustes -->
+        <div id="modal-pause" class="modal hidden">
+            <div class="modal-box modal-pause-box">
+                <div class="modal-header">
+                    <h2>⏸️ JUEGO EN PAUSA</h2>
+                </div>
+                <div class="pause-menu-actions">
+                    <button class="pause-btn btn-primary" id="btn-resume-game">▶ Reanudar Juego</button>
+                    <button class="pause-btn" id="btn-save-game"><font dir="auto" style="vertical-align: inherit;"><font dir="auto" style="vertical-align: inherit;">💾 Guardar coincidencia</font></font></button>
+                    <button class="pause-btn" id="btn-show-database">📊 Diccionario de Datos (Anexo C)</button>
+                    <button class="pause-btn" id="btn-sound-toggle">🔊 Sonido: ON</button>
+                    <button class="pause-btn" id="btn-show-controls">⌨️ Controles</button>
+                    <button class="pause-btn btn-danger" id="btn-restart-game">🔄 Reiniciar Partida</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- MODAL: Diccionario de Datos / DB Admin (Anexo B y C del proyecto) -->
+        <div id="modal-database" class="modal hidden">
+            <div class="modal-box modal-db-box">
+                <div class="modal-header">
+                    <h2>📊 ANEXO B &amp; C: ESTRUCTURA DE DATOS (DB ADMIN)</h2>
+                    <button class="modal-close-btn" data-close="modal-database"><font dir="auto" style="vertical-align: inherit;"><font dir="auto" style="vertical-align: inherit;">✕</font></font></button>
+                </div>
+                <div class="modal-body db-body">
+                    <p class="db-intro">Este panel refleja la estructura de persistencia y entidades del proyecto SURVIVAL QUEST en tiempo real:</p>
+                    <div class="db-tables-grid">
+                        <div class="db-card">
+                            <h3>Entidad: Jugador &amp; Vitals</h3>
+                            <pre id="db-player-json"></pre>
+                        </div>
+                        <div class="db-card">
+                            <h3>Entidad: Inventario &amp; Recursos</h3>
+                            <pre id="db-inventory-json"></pre>
+                        </div>
+                        <div class="db-card">
+                            <h3>Entidad: Estructuras del Mundo</h3>
+                            <pre id="db-world-json"></pre>
+                        </div>
+                    </div>
+                    <div class="db-actions">
+                        <button class="hud-btn" id="btn-export-save">📥 Exportar Partida JSON</button>
+                        <button class="hud-btn" id="btn-import-save">📤 Cargar JSON</button>
+                        <input type="file" id="file-import-input" style="display:none;" accept=".json">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- MODAL: Controles -->
+        <div id="modal-controls" class="modal hidden">
+            <div class="modal-box modal-controls-box">
+                <div class="modal-header">
+                    <h2><font dir="auto" style="vertical-align: inherit;"><font dir="auto" style="vertical-align: inherit;">⌨️ GUÍA DE CONTROLES</font></font></h2>
+                    <button class="modal-close-btn" data-close="modal-controls"><font dir="auto" style="vertical-align: inherit;"><font dir="auto" style="vertical-align: inherit;">✕</font></font></button>
+                </div>
+                <div class="modal-body">
+                    <table class="controls-table">
+                        <tbody><tr><td><span class="key-badge"><font dir="auto" style="vertical-align: inherit;"><font dir="auto" style="vertical-align: inherit;">WASD</font></font></span><font dir="auto" style="vertical-align: inherit;"><font dir="auto" style="vertical-align: inherit;"> / Flechas</font></font></td><td>Mover personaje por el bosque</td></tr>
+                        <tr><td><span class="key-badge"><font dir="auto" style="vertical-align: inherit;"><font dir="auto" style="vertical-align: inherit;">CAMBIO</font></font></span></td><td>Correr (Consume energía)</td></tr>
+                        <tr><td><span class="key-badge"><font dir="auto" style="vertical-align: inherit;"><font dir="auto" style="vertical-align: inherit;">E</font></font></span><font dir="auto" style="vertical-align: inherit;"><font dir="auto" style="vertical-align: inherit;"> / Clic</font></font></td><td>Interactuar / Recolectar / Beber en el río</td></tr>
+                        <tr><td><span class="key-badge">ESPACIO</span> / Clic Izq</td><td>Usar herramienta (Talar árbol, Picar roca, Atacar)</td></tr>
+                        <tr><td><span class="key-badge"><font dir="auto" style="vertical-align: inherit;"><font dir="auto" style="vertical-align: inherit;">1 - 8</font></font></span></td><td>Seleccionar ranura de la barra rápida</td></tr>
+                        <tr><td><span class="key-badge"><font dir="auto" style="vertical-align: inherit;"><font dir="auto" style="vertical-align: inherit;">Y</font></font></span><font dir="auto" style="vertical-align: inherit;"><font dir="auto" style="vertical-align: inherit;"> sobre </font></font><span class="key-badge"><font dir="auto" style="vertical-align: inherit;"><font dir="auto" style="vertical-align: inherit;">TAB</font></font></span></td><td>Abrir / Cerrar Inventario</td></tr>
+                        <tr><td><span class="key-badge"><font dir="auto" style="vertical-align: inherit;"><font dir="auto" style="vertical-align: inherit;">do</font></font></span></td><td>Abrir Taller de Fabricación (Crafting)</td></tr>
+                        <tr><td><span class="key-badge"><font dir="auto" style="vertical-align: inherit;"><font dir="auto" style="vertical-align: inherit;">Q</font></font></span></td><td>Alternar panel de Misiones</td></tr>
+                        <tr><td><span class="key-badge"><font dir="auto" style="vertical-align: inherit;"><font dir="auto" style="vertical-align: inherit;">METRO</font></font></span></td><td>Ver Mapa del Entorno</td></tr>
+                        <tr><td><span class="key-badge"><font dir="auto" style="vertical-align: inherit;"><font dir="auto" style="vertical-align: inherit;">ESC</font></font></span></td><td>Menú de Pausa / Guardar</td></tr>
+                    </tbody></table>
+                </div>
+            </div>
+        </div>
+
+        <!-- PANTALLA: Game Over (Muerte por hambre, sed o ataque) -->
+        <div id="screen-game-over" class="modal hidden">
+            <div class="modal-box game-over-box">
+                <h1 class="death-title">NO HAS SOBREVIVIDO</h1>
+                <p id="death-reason">Has sucumbido a los peligros de la naturaleza silvestre.</p>
+                <div class="death-stats" id="death-stats">
+                    <p>Días sobrevividos: <strong id="death-days">0</strong></p>
+                    <p>Recursos recolectados: <strong id="death-resources">0</strong></p>
+                </div>
+                <button class="btn-primary" id="btn-respawn">🔄 Intentar de Nuevo</button>
+            </div>
+        </div>
+
+        <!-- PANTALLA DE INICIO (Splash / Main Menu) -->
+        <div id="main-menu" class="main-menu-overlay">
+            <div class="menu-content">
+                <div class="game-logo-container">
+                    <div class="game-badge">PROPUESTA DE VIDEOJUEGO DE AVENTURA &amp; SUPERVIVENCIA</div>
+                    <h1 class="game-title"><font dir="auto" style="vertical-align: inherit;"><font dir="auto" style="vertical-align: inherit;">MISIÓN DE SUPERVIVENCIA</font></font></h1>
+                    <div class="game-subtitle">PROYECTO TECNOLÓGICO ACADÉMICO PARA PC</div>
+                </div>
+
+                <div class="menu-features-summary">
+                    <div class="feat-pill">🌲 Exploración Natural</div>
+                    <div class="feat-pill">⛏️ Recolección y Crafteo</div>
+                    <div class="feat-pill">🏕️ Construcción de Refugios</div>
+                    <div class="feat-pill">🐺 Ciclo Día / Noche</div>
+                    <div class="feat-pill"><font dir="auto" style="vertical-align: inherit;"><font dir="auto" style="vertical-align: inherit;">📊 ODS 4, 8, 9, 12, 15</font></font></div>
+                </div>
+
+                <div class="menu-buttons">
+                    <button class="btn-menu-action btn-menu-start" id="btn-start-game">▶ INICIAR NUEVA AVENTURA</button>
+                    <button class="btn-menu-action" id="btn-continue-game" style="display:none;">💾 CONTINUAR PARTIDA</button>
+                    <button class="btn-menu-action" id="btn-menu-controls">⌨️ GUÍA DE CONTROLES</button>
+                    <button class="btn-menu-action" id="btn-menu-about">📖 ACERCA DEL PROYECTO</button>
+                </div>
+
+                <div class="menu-footer">
+                    <span>Diseñado con arquitectura Godot / Web Canvas &amp; GDScript compatible</span>
+                    <span>Guardado local persistente • Sonido procedural WebAudio</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- MODAL: Acerca del Proyecto (Marco Teórico, Canvas, ODS) -->
+        <div id="modal-about" class="modal hidden">
+            <div class="modal-box modal-about-box">
+                <div class="modal-header">
+                    <h2><font dir="auto" style="vertical-align: inherit;"><font dir="auto" style="vertical-align: inherit;">📖 AVENTURA DE SUPERVIVENCIA - DOCUMENTO TÉCNICO</font></font></h2>
+                    <button class="modal-close-btn" data-close="modal-about"><font dir="auto" style="vertical-align: inherit;"><font dir="auto" style="vertical-align: inherit;">✕</font></font></button>
+                </div>
+                <div class="modal-body about-body">
+                    <h3>1. Resumen Ejecutivo</h3>
+                    <p>SURVIVAL QUEST es una propuesta de videojuego de aventura y supervivencia para computadoras personales (PC), inspirada en títulos como <em>Minecraft</em> y <em>The Forest</em>. El jugador debe sobrevivir en un entorno natural desconocido administrando sus necesidades vitales (Salud, Hambre, Sed, Energía), explorando bosques y ríos, recolectando materiales, fabricando herramientas y construyendo refugios para resistir la noche.</p>
+
+                    <h3>2. Alineación con los Objetivos de Desarrollo Sostenible (ODS)</h3>
+                    <ul>
+                        <li><strong>ODS 4 (Educación de calidad):</strong> Fomenta el pensamiento lógico, planificación estratégica y resolución de problemas.</li>
+                        <li><strong>ODS 8 (Crecimiento económico):</strong> Propuesta de emprendimiento e industria digital de software interactivo.</li>
+                        <li><strong>ODS 9 (Industria e Innovación):</strong> Empleo de motores de desarrollo (Godot Engine) y algoritmos procedurales.</li>
+                        <li><strong>ODS 12 (Consumo responsable):</strong> Mecánicas de gestión balanceada de recursos naturales sin desperdicio.</li>
+                        <li><strong>ODS 15 (Vida de ecosistemas terrestres):</strong> Concientización y valoración de la conservación de bosques y ríos.</li>
+                    </ul>
+
+                    <h3>3. Roles del Equipo de Trabajo</h3>
+                    <ul>
+                        <li><strong>Project Manager:</strong> Planificación, control de alcance y cumplimiento de objetivos.</li>
+                        <li><strong>Lead Developer:</strong> Programación de mecánicas de juego, bucle principal e interacciones.</li>
+                        <li><strong>Diseñador Gráfico:</strong> Interfaz gráfica (HUD), personajes, escenarios y paleta visual.</li>
+                        <li><strong>DB Admin:</strong> Estructura de entidades (Jugador, Inventario, Recursos, Partida) y guardado.</li>
+                        <li><strong>QA Tester:</strong> Verificación de jugabilidad, detección y corrección de bugs.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts del juego -->
+    <script src="./SURVIVAL QUEST - Videojuego de Aventura y Supervivencia_files/audio.js"></script>
+    <script src="./SURVIVAL QUEST - Videojuego de Aventura y Supervivencia_files/world.js"></script>
+    <script src="./SURVIVAL QUEST - Videojuego de Aventura y Supervivencia_files/entities.js"></script>
+    <script src="./SURVIVAL QUEST - Videojuego de Aventura y Supervivencia_files/systems.js"></script>
+    <script src="./SURVIVAL QUEST - Videojuego de Aventura y Supervivencia_files/game.js"></script><div id="goog-gt-tt" class="VIpgJd-yAWNEb-L7lbkb skiptranslate" style="display: none; border-radius: 12px; margin: 0 0 0 -23px; padding: 0; font-family: 'Google Sans', Arial, sans-serif;" data-id=""><div id="goog-gt-vt" class="VIpgJd-yAWNEb-hvhgNd"><div class="VIpgJd-yAWNEb-hvhgNd-Ud7fr"><img src="./SURVIVAL QUEST - Videojuego de Aventura y Supervivencia_files/24px.svg" width="24" height="24" alt=""><div class=" VIpgJd-yAWNEb-hvhgNd-IuizWc-i3jM8c " dir="ltr">Original text</div></div><div class="VIpgJd-yAWNEb-hvhgNd-k77Iif"><div id="goog-gt-original-text" class="VIpgJd-yAWNEb-nVMfcd-fmcmS VIpgJd-yAWNEb-hvhgNd-axAV1"></div></div><div class="VIpgJd-yAWNEb-hvhgNd-N7Eqid ltr"><div class="VIpgJd-yAWNEb-hvhgNd-N7Eqid-B7I4Od ltr" dir="ltr"><div class="VIpgJd-yAWNEb-hvhgNd-UTujCb">Rate this translation</div><div class="VIpgJd-yAWNEb-hvhgNd-eO9mKe">Your feedback will be used to help improve Google Translate</div></div><div class="VIpgJd-yAWNEb-hvhgNd-xgov5 ltr"><button id="goog-gt-thumbUpButton" type="button" class="VIpgJd-yAWNEb-hvhgNd-bgm6sf" title="Good translation" aria-label="Good translation" aria-pressed="false"><span id="goog-gt-thumbUpIcon"><svg width="24" height="24" viewBox="0 0 24 24" focusable="false" class="VIpgJd-yAWNEb-hvhgNd-THI6Vb NMm5M"><path d="M21 7h-6.31l.95-4.57.03-.32c0-.41-.17-.79-.44-1.06L14.17 0S7.08 6.85 7 7H2v13h16c.83 0 1.54-.5 1.84-1.22l3.02-7.05c.09-.23.14-.47.14-.73V9c0-1.1-.9-2-2-2zM7 18H4V9h3v9zm14-7l-3 7H9V8l4.34-4.34L12 9h9v2z"></path></svg></span><span id="goog-gt-thumbUpIconFilled"><svg width="24" height="24" viewBox="0 0 24 24" focusable="false" class="VIpgJd-yAWNEb-hvhgNd-THI6Vb NMm5M"><path d="M21 7h-6.31l.95-4.57.03-.32c0-.41-.17-.79-.44-1.06L14.17 0S7.08 6.85 7 7v13h11c.83 0 1.54-.5 1.84-1.22l3.02-7.05c.09-.23.14-.47.14-.73V9c0-1.1-.9-2-2-2zM5 7H1v13h4V7z"></path></svg></span></button><button id="goog-gt-thumbDownButton" type="button" class="VIpgJd-yAWNEb-hvhgNd-bgm6sf" title="Poor translation" aria-label="Poor translation" aria-pressed="false"><span id="goog-gt-thumbDownIcon"><svg width="24" height="24" viewBox="0 0 24 24" focusable="false" class="VIpgJd-yAWNEb-hvhgNd-THI6Vb NMm5M"><path d="M3 17h6.31l-.95 4.57-.03.32c0 .41.17.79.44 1.06L9.83 24s7.09-6.85 7.17-7h5V4H6c-.83 0-1.54.5-1.84 1.22l-3.02 7.05c-.09.23-.14.47-.14.73v2c0 1.1.9 2 2 2zM17 6h3v9h-3V6zM3 13l3-7h9v10l-4.34 4.34L12 15H3v-2z"></path></svg></span><span id="goog-gt-thumbDownIconFilled"><svg width="24" height="24" viewBox="0 0 24 24" focusable="false" class="VIpgJd-yAWNEb-hvhgNd-THI6Vb NMm5M"><path d="M3 17h6.31l-.95 4.57-.03.32c0 .41.17.79.44 1.06L9.83 24s7.09-6.85 7.17-7V4H6c-.83 0-1.54.5-1.84 1.22l-3.02 7.05c-.09.23-.14.47-.14.73v2c0 1.1.9 2 2 2zm16 0h4V4h-4v13z"></path></svg></span></button></div></div><div id="goog-gt-votingHiddenPane" class="VIpgJd-yAWNEb-hvhgNd-aXYTce"><form id="goog-gt-votingForm" action="file://translate.googleapis.com/translate_voting?client=te_lib" method="post" target="votingFrame" class="VIpgJd-yAWNEb-hvhgNd-aXYTce"><input type="text" name="sl" id="goog-gt-votingInputSrcLang"><input type="text" name="tl" id="goog-gt-votingInputTrgLang"><input type="text" name="query" id="goog-gt-votingInputSrcText"><input type="text" name="gtrans" id="goog-gt-votingInputTrgText"><input type="text" name="vote" id="goog-gt-votingInputVote"></form><iframe name="votingFrame" frameborder="0" src="./SURVIVAL QUEST - Videojuego de Aventura y Supervivencia_files/saved_resource.html"></iframe></div></div></div>
+
+
+</body></html>
